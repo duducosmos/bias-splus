@@ -18,3 +18,17 @@ Latest Changes:
 Instructions: Run the code with a -h/--help option to list all the arguments,
 necessary and optional, on the command line.  
 Requirements: Numpy, Astropy, Matplotlib
+
+EXAMPLES:
+
+`python bias_splus_v02.py --initdate "2016/09/05" --finaldate "2016/09/11" -o "bias_splus_05_10" -m "splus_master_bias.fits"`  
+
+or for new mode, ony takes into account new bias/dates:  
+
+`python bias_splus_v02.py -o "bias_splus_26_sept" -m "splus_master_bias.fits"`  
+
+
+NOTE:
+For human input, unless stated otherwise, dates should be given as a string by yyyy/mm/dd, 
+for example, '2016/09/09'.  
+For function input, are given as python date objects
