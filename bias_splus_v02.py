@@ -3,19 +3,14 @@
 
 """
 Name: bias_splus
-Version 0.2
+Version 0.3
 Description: Provide statistical analysis for s-plus bias images over periods of time
 Author: Walter Santos
 Created on: Set 12th 2016
 Last Updated: Nov 26th 2016
 Latest Changes:
-- Try/exception clauses to ignore bad bias files
-- Added a new input parameter: master bias
-- Results include biases division by this master, including thefinal plot
-- When no dates are given, only new downaloaded (updated in the server
-    are considered for the analysis)
-- If a bias for a given night is off by a certain percentage compared to the master,
-    a warning is printed out and the point gets redin the plot, instead of the default blue
+- Include the acceptable percentage (above which the bias is flagged
+as not acceptable) into a command line parameter
 Instructions: Run the code with a -h/--help option to list all the arguments,
 necessary and optional, on the command line.
 Requirements: Numpy, Astropy, Matplotlib
@@ -34,7 +29,7 @@ For function input, are given as python date objects
 
 DEFAULT_INITIAL_DATE = '2016/09/01'
 #DEFAULT_FINAL_DATE = '2016/09/11'
-ACCEPTABLE_PERC = 0.05
+DEFAULT_ACCEPTABLE_PERC = 0.05
 
 
 """
@@ -55,7 +50,7 @@ from matplotlib.dates import DayLocator, DateFormatter, date2num
 """
 FUNCTIONS
 """
-def outputPlot(fulldate, xdates, ypoints, errors, outfile):
+def outputPlot(fulldate, xdates, ypoints, errors, outfile, perc):
     fig, ax = plt.subplots()
 
     y = np.asarray(ypoints,dtype=np.float)
@@ -67,7 +62,7 @@ def outputPlot(fulldate, xdates, ypoints, errors, outfile):
 
     cmap, norm = mpl.colors.from_levels_and_colors(levels=levels, colors=colors, extend='max')
 
-    colorredalert = np.where((y >= (1.0+ACCEPTABLE_PERC)) | (y <= (1.0-ACCEPTABLE_PERC)), 0, 1)
+    colorredalert = np.where((y >= (1.0+perc)) | (y <= (1.0-perc)), 0, 1)
 
     ax.scatter(x,y,c=colorredalert, marker='o', edgecolor='none', cmap=cmap, norm=norm, zorder=1)   
 
@@ -168,6 +163,9 @@ parser.add_argument('-o','--output', default='bias_splus_sept', help='output fil
                      will be given if None', metavar='output_file')
 parser.add_argument('-m','--master', default='splus_master_bias.fits', help='input \
                      master bias image', metavar='MASTER_BIAS.fits')
+parser.add_argument('-p','--perc', default=DEFAULT_ACCEPTABLE_PERC, type=float,
+                    help='percentage above which the bias is flagged \
+                    as not acceptable')
 
 #command line example:
 """
@@ -202,6 +200,8 @@ else:
     csvlist = downloadNewFilelistsCSV(datelist)
     actualdates = map(convertCSVtoDate, csvlist)
     fulldatelist = actualdates
+
+acceptablePerc = settings['perc']
 
 masterFilename = settings['master']
 try:
@@ -265,10 +265,10 @@ for csv in csvlist:
         stacked_bias_per_master = stacked_bias/mdata
         fout.write('\n'+str(dateback)+' '+str(int(np.mean(stacked_bias)))+' '+str(int(np.median(stacked_bias)))+' '+ str(int(np.max(stacked_bias)))+' '+ str(int(np.min(stacked_bias)))+' '+ str(np.std(stacked_bias))+' '+str(np.mean(stacked_bias_per_master))+' '+str(np.median(stacked_bias_per_master))+' '+str(np.std(stacked_bias_per_master)))
         print dateback, int(np.mean(stacked_bias)), int(np.median(stacked_bias)), int(np.max(stacked_bias)), int(np.min(stacked_bias)), np.std(stacked_bias), np.mean(stacked_bias_per_master), np.median(stacked_bias_per_master), np.std(stacked_bias_per_master)
-        if((np.mean(stacked_bias_per_master) >= (1.0+ACCEPTABLE_PERC)) or (np.mean(stacked_bias_per_master) <= (1.0-ACCEPTABLE_PERC))):
+        if((np.mean(stacked_bias_per_master) >= (1.0+acceptablePerc)) or (np.mean(stacked_bias_per_master) <= (1.0-acceptablePerc))):
             print('WARNING: Bias for the date '+ str(dateback)+'above acceptable value compared to master!')
         bias_day_mean.append(np.mean(stacked_bias_per_master))
         bias_day_error.append(np.std(stacked_bias_per_master))
     
-outputPlot(fulldatelist, actualdates, bias_day_mean, bias_day_error, settings['output']+'.png')
+outputPlot(fulldatelist, actualdates, bias_day_mean, bias_day_error, settings['output']+'.png', acceptablePerc)
 fout.close()
