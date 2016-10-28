@@ -12,6 +12,7 @@ Latest Changes:
 - Include the acceptable percentage (above which the bias is flagged
 as not acceptable) into a command line parameter
 - Changed default output filename to 'bias_splus_$finalDate'
+- Include errors and warning in he output file log
 Instructions: Run the code with a -h/--help option to list all the arguments,
 necessary and optional, on the command line.
 Requirements: Numpy, Astropy, Matplotlib
@@ -217,7 +218,8 @@ try:
     mdata = np.zeros((m_nx, m_ny),dtype=np.float32)
     mdata += _mdata
 except:
-    print('Could not find or access data of master bias named: '+masterFilename)
+    print('ERROR: Could not find or access data of master bias named: '+masterFilename)
+    fout.write('\n ERROR: Could not find or access data of master bias named: '+masterFilename+'\n')
     raise
     
 bias_day_mean = list()
@@ -248,6 +250,7 @@ for csv in csvlist:
             bdata += _bdata
         except:
             print('WARNING: Unable to open or corrupted file '+b+'. Ignoring it.\n')
+            fout.write('\n WARNING: Unable to open or corrupted file '+b+'. Ignoring it.\n')
             bias_stack = np.delete(bias_stack,-1,axis=0)
             nbias-=1
         else:
@@ -260,6 +263,7 @@ for csv in csvlist:
    
     if(nbias == 0):
         print('WARNING: There are no suitable bias files for date '+str(dateback)+'!')
+        fout.write('\n WARNING: There are no suitable bias files for date '+str(dateback)+'!')
         actualdates.remove(dateback)
     else:
         fout.write('\n# Combined ' + str(nbias) + 'bias for the date '+ str(dateback)+' ...')
@@ -272,6 +276,7 @@ for csv in csvlist:
         print dateback, int(np.mean(stacked_bias)), int(np.median(stacked_bias)), int(np.max(stacked_bias)), int(np.min(stacked_bias)), np.std(stacked_bias), np.mean(stacked_bias_per_master), np.median(stacked_bias_per_master), np.std(stacked_bias_per_master)
         if((np.mean(stacked_bias_per_master) >= (1.0+acceptablePerc)) or (np.mean(stacked_bias_per_master) <= (1.0-acceptablePerc))):
             print('WARNING: Bias for the date '+ str(dateback)+'above acceptable value compared to master!')
+            fout.write('\n WARNING: Bias for the date '+ str(dateback)+'above acceptable value compared to master! \n')
         bias_day_mean.append(np.mean(stacked_bias_per_master))
         bias_day_error.append(np.std(stacked_bias_per_master))
     
