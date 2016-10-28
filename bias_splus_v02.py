@@ -11,6 +11,7 @@ Last Updated: Nov 26th 2016
 Latest Changes:
 - Include the acceptable percentage (above which the bias is flagged
 as not acceptable) into a command line parameter
+- Changed default output filename to 'bias_splus_$finalDate'
 Instructions: Run the code with a -h/--help option to list all the arguments,
 necessary and optional, on the command line.
 Requirements: Numpy, Astropy, Matplotlib
@@ -158,7 +159,7 @@ parser.add_argument('--initdate', default=None, help='initial \
                     date for the analysis', metavar='yyyy/mm/dd')
 parser.add_argument('--finaldate', default=None, help='final \
                     date for the analysis', metavar='yyyy/mm/dd')
-parser.add_argument('-o','--output', default='bias_splus_sept', help='output file name, also \
+parser.add_argument('-o','--output', default=None, help='output file name, also \
                      used for the output plot name, an appropriate default \
                      will be given if None', metavar='output_file')
 parser.add_argument('-m','--master', default='splus_master_bias.fits', help='input \
@@ -203,6 +204,12 @@ else:
 
 acceptablePerc = settings['perc']
 
+if(settings['output']==None):
+    outputFilename = 'bias_splus'+str(finalDate)
+else:
+    outputFilename = settings['output']
+fout = open(outputFilename+'.log', "w")
+
 masterFilename = settings['master']
 try:
     _mdata = fits.open(masterFilename)[0].data
@@ -213,8 +220,6 @@ except:
     print('Could not find or access data of master bias named: '+masterFilename)
     raise
     
-fout = open(settings['output']+'.dat', "w")
-
 bias_day_mean = list()
 bias_day_error = list()
 
