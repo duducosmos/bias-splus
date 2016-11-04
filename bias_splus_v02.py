@@ -13,13 +13,10 @@ Latest Changes:
 as not acceptable) into a command line parameter
 - Changed default output filename to 'bias_splus_$finalDate'
 - Include errors and warning in he output file log
+- Change the way we look for new BIAS images using a mongo db setupt by Tiago/William
 Instructions: Run the code with a -h/--help option to list all the arguments,
 necessary and optional, on the command line.
 Requirements: Numpy, Astropy, Matplotlib
-
-----
-EXAMPLE:
-
 """
 
 """
@@ -87,13 +84,14 @@ def daterange(start_date, end_date):
     for ordinal in range(start_date.toordinal(), end_date.toordinal()):
         yield date.fromordinal(ordinal)
         
-
+"""
 def getFilelistsDates(init, final):
     list_dates = daterange(init, final)
     filelist = ['filelist_'+str(d.year)+('%02d' % d.month)+('%02d' % d.day)+'.csv' for d in list_dates]
     return filelist
-    
-    
+"""
+
+"""
 def downloadFilelistsCSV(filelist):
     csvlist = list()
     cmd = 'wget --no-check-certificate -c https://t80s_images:t80s_images_keywords_pass@splus.astro.ufsc.br/'
@@ -107,8 +105,8 @@ def downloadFilelistsCSV(filelist):
             if os.path.isfile(f):
                 csvlist.append(f)
     return csvlist
-
-
+"""
+"""
 def downloadNewFilelistsCSV(filelist):
     csvlist = list()
     cmd = 'wget --no-check-certificate -c https://t80s_images:t80s_images_keywords_pass@splus.astro.ufsc.br/'
@@ -121,8 +119,9 @@ def downloadNewFilelistsCSV(filelist):
                 csvlist.append(f)
                 
     return csvlist        
-        
-    
+"""     
+
+""" 
 def getBiaslistFromCSV(csvfile):
     biaslist = list()
     biasnames = list()
@@ -137,12 +136,12 @@ def getBiaslistFromCSV(csvfile):
                 biaslist.append(pathfile)
                 biasnames.append(namefile)
     return biaslist, biasnames
-        
-        
+"""     
+"""     
 def convertCSVtoDate(csvfile):
     d = csvfile[9:-4]
     return date(int(d[0:4]), int(d[4:6]), int(d[6:8]))
-
+"""
     
 def downloadBiasFromDate(biaslist):
     cmd = 'wget --no-check-certificate -c '
@@ -186,6 +185,7 @@ Parse the input parameters, define and declare variables
 """
 args = parser.parse_args()
 settings = vars(args)
+
 
 if ((settings['initdate'] and settings['finaldate']) != None):
     initDate = date(int(settings['initdate'].split('/')[0]),int(settings['initdate'].split('/')[1]),int(settings['initdate'].split('/')[2]))
