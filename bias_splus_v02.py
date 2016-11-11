@@ -86,9 +86,9 @@ def daterange(start_date, end_date):
     for ordinal in range(start_date.toordinal(), end_date.toordinal()):
         yield date.fromordinal(ordinal)
 
-def getDatesLists(init, final):
+def getDatesList(init, final):
     list_dates = daterange(init, final)
-    return [d for d in list_dates], [str(d.year)+('%02d' % d.month)+('%02d' % d.day) for d  in list_dates]
+    return [d for d in list_dates] 
 
 
 
@@ -141,12 +141,14 @@ client = MongoClient('%s:%s' % (host, port))
 if ((settings['initdate'] and settings['finaldate']) is not None):
     initDate = date(int(settings['initdate'].split('/')[0]),int(settings['initdate'].split('/')[1]),int(settings['initdate'].split('/')[2]))
     finalDate = date(int(settings['finaldate'].split('/')[0]),int(settings['finaldate'].split('/')[1]),int(settings['finaldate'].split('/')[2]))
-    fulldatelist, datelist = getDatesLists(initDate,finalDate)
+    
 else:
     initDate = date(int(DEFAULT_INITIAL_DATE.split('/')[0]),int(DEFAULT_INITIAL_DATE.split('/')[1]),int(DEFAULT_INITIAL_DATE.split('/')[2]))
     finalDate = date.today()
-    fulldatelist, datelist = getDatesLists(initDate,finalDate)
-    
+
+fulldatelist = getDatesList(initDate,finalDate)
+datelist = [str(d.year)+('%02d' % d.month)+('%02d' % d.day) for d in fulldatelist]
+
 if(settings['output']==None):
     outputFilename = 'bias_splus'+str(finalDate)
 else:
@@ -184,9 +186,12 @@ for night in datelist:
         print '# date filename mean median max min std mean_per_master median_per_master std_per_master'
     
         biasfilelist = [str(frame['FILENAME']) for frame in cursor]
+        print nbias, biasfilelist
         bias_stack = np.zeros((nbias,m_nx,m_ny),dtype=np.float32)
         bias_stack_per_master = np.zeros((nbias,m_nx,m_ny),dtype=np.float32)
         i = 0
+        
+    
         for b in biasfilelist:
             try:
                 _bdata = fits.open(path+'/'+night+'/'+b)[0].data
@@ -223,4 +228,5 @@ for night in datelist:
     
 
 outputPlot(fulldatelist, actualdates, bias_day_mean, bias_day_error, settings['output']+'.png', acceptablePerc)
+
 fout.close()
